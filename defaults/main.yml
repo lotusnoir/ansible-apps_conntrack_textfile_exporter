@@ -1,0 +1,9 @@
+---
+# conntrack_textfile_exporter_with_count: true
+conntrack_textfile_exporter_log_dir: "/var/log"
+# conntrack_textfile_exporter_exclude:
+#   - 8301
+#   - "{{ ansible_default_ipv4.address }}"
+
+# conntrack_textfile_exporter_textfile_prometheus: true
+conntrack_textfile_exporter_prometheus_dir: "/var/lib/node_exporter"

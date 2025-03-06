@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# Configuration
+REFERENCE_FILE="{{ conntrack_textfile_exporter_log_dir}}/conntrack_textfile_exporter.log"
+PROMETHEUS_FILE="{{ conntrack_textfile_exporter_prometheus_dir }}/conntrack_textfile_exporter.prom"
+
+LOCAL_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
+ALL_IPS=$(ip -o addr | awk '!/^[0-9]*: ?lo|link\/ether/ {print $4}' | sed 's/\/24//' | tr '\r\n' ' ')
+#ALL_IPS=$(hostname --all-ip-addresses || hostname -I)
+
+# Ensure the reference file exists
+touch "$REFERENCE_FILE"
+
+update_reference_file_udp() {
+    #######################################
+    for i in $ALL_IPS; do
+        conntrack -L -p udp -s $i 2>/dev/null | awk '{print $1, $4, $5, $7}' | awk -F '[=: ]' '{print $1, $3, $5, $7}' | sort | uniq -c | grep -v '8301' > /tmp/current_ips_udp_OUT.txt
+        while read -r COUNT PROTOCOL SRC DST PORT; do
+            if grep -qw "OUT $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE"; then
+                # Update occurrence count if IP exists
+                OLD_COUNT=$(grep -w "OUT $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE" | awk '{print $1}')
+                NEW_COUNT=$((OLD_COUNT + COUNT))
+                sed -i "/OUT $PROTOCOL $SRC $DST $PORT/d" "$REFERENCE_FILE"
+                echo "$NEW_COUNT OUT $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
+
+                sed -i "/conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
+                echo "conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+            else
+                # Add new entry if IP does not exist
+                echo "$COUNT OUT $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
+                echo "conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+            fi
+        done < /tmp/current_ips_udp_OUT.txt
+    done
+
+    #######################################
+    for i in $ALL_IPS; do
+      conntrack -L -p udp -d $i 2>/dev/null | awk '{print $1, $4, $5, $7}' | awk -F '[=: ]' '{print $1, $3, $5, $7}' | sort | uniq -c | grep -v '8301' > /tmp/current_ips_udp_IN.txt
+        while read -r COUNT PROTOCOL SRC DST PORT; do
+            if grep -qw "IN $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE"; then
+                # Update occurrence count if IP exists
+                OLD_COUNT=$(grep -w "IN $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE" | awk '{print $1}')
+                NEW_COUNT=$((OLD_COUNT + COUNT))
+                sed -i "/IN $PROTOCOL $SRC $DST $PORT/d" "$REFERENCE_FILE"
+                echo "$NEW_COUNT IN $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
+
+                sed -i "/conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
+                echo "conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+            else
+                # Add new entry if IP does not exist
+                echo "$COUNT IN $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
+                echo "conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+            fi
+
+      done < /tmp/current_ips_udp_IN.txt
+    done
+
+}
+
+update_reference_file_tcp() {
+    #######################################
+    for i in $ALL_IPS; do
+      conntrack -L -p tcp --state ESTABLISHED -s $i  2>/dev/null | awk '{print $1, $5, $6, $8}' | awk -F '[=: ]' '{print $1, $3, $5, $7}' | sort | uniq -c  > /tmp/current_ips_tcp_OUT.txt
+        while read -r COUNT PROTOCOL SRC DST PORT; do
+            if grep -qw "OUT $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE"; then
+                # Update occurrence count if IP exists
+                OLD_COUNT=$(grep -w "OUT $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE" | awk '{print $1}')
+                NEW_COUNT=$((OLD_COUNT + COUNT))
+                sed -i "/OUT $PROTOCOL $SRC $DST $PORT/d" "$REFERENCE_FILE"
+                echo "$NEW_COUNT OUT $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
+
+                sed -i "/conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
+                echo "conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+            else
+                # Add new entry if IP does not exist
+                echo "$COUNT OUT $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
+                echo "conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $COUNT" >> "$PROMETHEUS_FILE"
+            fi
+      done < /tmp/current_ips_tcp_OUT.txt
+    done
+
+    #######################################
+    for i in $ALL_IPS; do
+      conntrack -L -p tcp --state ESTABLISHED -d $i  2>/dev/null | awk '{print $1, $5, $6, $8}' | awk -F '[=: ]' '{print $1, $3, $5, $7}' | sort | uniq -c  > /tmp/current_ips_tcp_IN.txt
+        while read -r COUNT PROTOCOL SRC DST PORT; do
+            if grep -qw "IN $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE"; then
+                # Update occurrence count if IP exists
+                OLD_COUNT=$(grep -w "IN $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE" | awk '{print $1}')
+                NEW_COUNT=$((OLD_COUNT + COUNT))
+                sed -i "/IN $PROTOCOL $SRC $DST $PORT/d" "$REFERENCE_FILE"
+                echo "$NEW_COUNT IN $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
+
+                sed -i "/conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
+                echo "conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+            else
+                # Add new entry if IP does not exist
+                echo "$COUNT IN $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
+                echo "conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $COUNT" >> "$PROMETHEUS_FILE"
+            fi
+      done < /tmp/current_ips_tcp_IN.txt
+    done
+}
+
+# Main loop
+while true; do
+    update_reference_file_udp
+    update_reference_file_tcp
+done
