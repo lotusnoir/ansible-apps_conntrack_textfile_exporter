@@ -23,12 +23,12 @@ update_reference_file_udp() {
                 sed -i "/OUT $PROTOCOL $SRC $DST $PORT/d" "$REFERENCE_FILE"
                 echo "$NEW_COUNT OUT $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
 
-                sed -i "/conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
-                echo "conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+                sed -i "/conntrack_connections_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
+                echo "conntrack_connections_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
             else
                 # Add new entry if IP does not exist
                 echo "$COUNT OUT $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
-                echo "conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+                echo "conntrack_connections_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
             fi
         done < /tmp/current_ips_udp_OUT.txt
     done
@@ -44,12 +44,12 @@ update_reference_file_udp() {
                 sed -i "/IN $PROTOCOL $SRC $DST $PORT/d" "$REFERENCE_FILE"
                 echo "$NEW_COUNT IN $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
 
-                sed -i "/conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
-                echo "conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+                sed -i "/conntrack_connections_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
+                echo "conntrack_connections_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
             else
                 # Add new entry if IP does not exist
                 echo "$COUNT IN $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
-                echo "conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+                echo "conntrack_connections_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
             fi
 
       done < /tmp/current_ips_udp_IN.txt
@@ -69,12 +69,12 @@ update_reference_file_tcp() {
                 sed -i "/OUT $PROTOCOL $SRC $DST $PORT/d" "$REFERENCE_FILE"
                 echo "$NEW_COUNT OUT $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
 
-                sed -i "/conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
-                echo "conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+                sed -i "/conntrack_connections_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
+                echo "conntrack_connections_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
             else
                 # Add new entry if IP does not exist
                 echo "$COUNT OUT $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
-                echo "conntrack_ip_matrix_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $COUNT" >> "$PROMETHEUS_FILE"
+                echo "conntrack_connections_out{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $COUNT" >> "$PROMETHEUS_FILE"
             fi
       done < /tmp/current_ips_tcp_OUT.txt
     done
@@ -90,12 +90,12 @@ update_reference_file_tcp() {
                 sed -i "/IN $PROTOCOL $SRC $DST $PORT/d" "$REFERENCE_FILE"
                 echo "$NEW_COUNT IN $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
 
-                sed -i "/conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
-                echo "conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
+                sed -i "/conntrack_connections_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"}/d" "$PROMETHEUS_FILE"
+                echo "conntrack_connections_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $NEW_COUNT" >> "$PROMETHEUS_FILE"
             else
                 # Add new entry if IP does not exist
                 echo "$COUNT IN $PROTOCOL $SRC $DST $PORT" >> "$REFERENCE_FILE"
-                echo "conntrack_ip_matrix_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $COUNT" >> "$PROMETHEUS_FILE"
+                echo "conntrack_connections_in{protocol=\"$PROTOCOL\", source=\"$SRC\", destination=\"$DST\", port=\"$PORT\"} $COUNT" >> "$PROMETHEUS_FILE"
             fi
       done < /tmp/current_ips_tcp_IN.txt
     done
