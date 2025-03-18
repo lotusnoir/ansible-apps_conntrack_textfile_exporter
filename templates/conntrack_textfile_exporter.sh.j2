@@ -4,8 +4,8 @@
 REFERENCE_FILE="{{ conntrack_textfile_exporter_log_dir}}/conntrack_textfile_exporter.log"
 PROMETHEUS_FILE="{{ conntrack_textfile_exporter_prometheus_dir }}/conntrack_textfile_exporter.prom"
 
-LOCAL_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
-ALL_IPS=$(ip -o addr | awk '!/^[0-9]*: ?lo|link\/ether/ {print $4}' | sed 's/\/24//' | tr '\r\n' ' ')
+#LOCAL_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
+#ALL_IPS=$(ip -o addr | awk '!/^[0-9]*: ?lo|link\/ether/ {print $4}' | sed 's/\/24//' | tr '\r\n' ' ')
 #ALL_IPS=$(hostname --all-ip-addresses || hostname -I)
 
 # Ensure the reference file exists
@@ -60,7 +60,7 @@ update_reference_file_udp() {
 update_reference_file_tcp() {
     #######################################
     for i in $ALL_IPS; do
-      conntrack -L -p tcp --state ESTABLISHED -s $i  2>/dev/null | awk '{print $1, $5, $6, $8}' | awk -F '[=: ]' '{print $1, $3, $5, $7}' | sort | uniq -c  > /tmp/current_ips_tcp_OUT.txt
+      conntrack -L -p tcp --state ESTABLISHED -s $i  2>/dev/null | awk '{print $1, $5, $6, $8}' | awk -F '[=: ]' '{print $1, $3, $5, $7}' | sort | uniq -c  | grep -v '8301' > /tmp/current_ips_tcp_OUT.txt
         while read -r COUNT PROTOCOL SRC DST PORT; do
             if grep -qw "OUT $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE"; then
                 # Update occurrence count if IP exists
@@ -81,7 +81,7 @@ update_reference_file_tcp() {
 
     #######################################
     for i in $ALL_IPS; do
-      conntrack -L -p tcp --state ESTABLISHED -d $i  2>/dev/null | awk '{print $1, $5, $6, $8}' | awk -F '[=: ]' '{print $1, $3, $5, $7}' | sort | uniq -c  > /tmp/current_ips_tcp_IN.txt
+      conntrack -L -p tcp --state ESTABLISHED -d $i  2>/dev/null | awk '{print $1, $5, $6, $8}' | awk -F '[=: ]' '{print $1, $3, $5, $7}' | sort | uniq -c  | grep -v '8301' > /tmp/current_ips_tcp_IN.txt
         while read -r COUNT PROTOCOL SRC DST PORT; do
             if grep -qw "IN $PROTOCOL $SRC $DST $PORT" "$REFERENCE_FILE"; then
                 # Update occurrence count if IP exists
