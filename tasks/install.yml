@@ -10,10 +10,10 @@
     state: directory
     mode: "0755"
   with_items:
-    - "{{ conntrack_textfile_exporter_log_dir }}"
-    - "{{ conntrack_textfile_exporter_prometheus_dir }}"
+    - "{{ conntrack_textfile_exporter_log_file | dirname }}"
+    - "{{ conntrack_textfile_exporter_prometheus_file | dirname }}"
 
-- name: Template a file to /etc/file.conf
+- name: "Copy /usr/local/bin/conntrack_textfile_exporter.sh"
   ansible.builtin.template:
     src: conntrack_textfile_exporter.sh.j2
     dest: /usr/local/bin/conntrack_textfile_exporter.sh
