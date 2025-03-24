@@ -21,6 +21,15 @@
     group: root
     mode: "0755"
 
+- name: Reset files values
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - conntrack_textfile_exporter_log_file
+    - conntrack_textfile_exporter_prometheus_file
+  when: conntrack_textfile_exporter_reset_values
+
 - name: "Create systemd for conntrack_textfile_exporter"
   ansible.builtin.template:
     src: "conntrack_textfile_exporter.service.j2"

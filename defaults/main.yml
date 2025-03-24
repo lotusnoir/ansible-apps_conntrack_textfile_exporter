@@ -6,3 +6,5 @@ conntrack_textfile_exporter_textfile_prometheus: true
 ### exclude results with grep -v, you need to set the rigth regex here
 conntrack_textfile_exporter_udp_exclude: ""
 conntrack_textfile_exporter_tcp_exclude: ""
+
+conntrack_textfile_exporter_reset_values: false
