@@ -27,9 +27,10 @@ galaxy_info:
         - "9"
 
   galaxy_tags:
+    - metrics
+    - prometheurs
     - conntrack
     - network
     - exporter
-    - prometheus
 
 dependencies: []
